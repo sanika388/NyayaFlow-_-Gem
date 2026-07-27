@@ -1,0 +1,67 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* This makes our hint text look small and neat */
+.file-hints {
+  display: block;
+  font-size: 12px;
+  color: #666; /* This is a soft grey */
+  margin-top: 8px;
+  font-weight: normal;
+}
+
+/* This makes the button look "turned off" when the system is thinking */
+button:disabled {
+  background-color: #383894 !important;
+  cursor: not-allowed;
+}
+.date-input {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #1d77ee;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.glass-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  padding: 20px;
+}
