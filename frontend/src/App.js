@@ -35,11 +35,9 @@ import {
   Layers,
   LogOut,
 } from "lucide-react";
-const API_BASE_URL = 
-  import.meta.env.VITE_BACKEND_URL || 
+const API_BASE_URL =
+  import.meta.env.VITE_BACKEND_URL ||
   "https://nyayaflow-backend-d7cs.onrender.com";
-
-export default API_BASE_URL;
 
 const generateAppealContent = (item) => {
   const today = new Date().toLocaleDateString("en-IN");
