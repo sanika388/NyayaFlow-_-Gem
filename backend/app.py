@@ -39,6 +39,15 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 # --- DATABASE CONNECTION ---
+db_config = {
+    'host': os.environ.get('DB_HOST', 'mysql-834b301-dusanesanika5-f24b.f.aivencloud.com'),
+    'port': int(os.environ.get('DB_PORT', 13300)),
+    'user': os.environ.get('DB_USER', 'avnadmin'),
+    # Leave no plain text password here!
+    'password': os.environ.get('DB_PASS'),
+    'database': os.environ.get('DB_NAME', 'defaultdb'),
+    'ssl_ca': None
+}
 
 
 def get_db_connection():

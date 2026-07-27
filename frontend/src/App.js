@@ -228,7 +228,20 @@ const formatDateForInput = (dateStr) => {
     return "";
   }
 };
-
+const getDaysElapsed = (filingDateStr) => {
+  if (!filingDateStr) return 0;
+  // Handle standard DD/MM/YYYY or YYYY-MM-DD
+  const parts = filingDateStr.split(/[-/]/);
+  let filingDate;
+  if (parts[0].length === 4) {
+    filingDate = new Date(filingDateStr); // YYYY-MM-DD
+  } else {
+    filingDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); // DD/MM/YYYY
+  }
+  const today = new Date();
+  const diffTime = today - filingDate;
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+};
 //   Cleans OCR hallucinations
 const cleanOCRDate = (dateStr) => {
   if (!dateStr || dateStr === "—") return "";
@@ -1607,23 +1620,15 @@ function App() {
                 </div>
                 <button
                   onClick={() => setIsReviewing(true)}
-                  // Added '?' here to prevent the crash
-                  disabled={
-                    !data?.reg_number || data?.reg_number === "Not Found"
-                  }
+                  // Only disable if 'data' hasn't finished loading yet
+                  disabled={!data}
                   style={{
                     padding: "12px 30px",
-                    backgroundColor:
-                      !data?.reg_number || data?.reg_number === "Not Found"
-                        ? "#83ade8" // Use a clearer grey for disabled state
-                        : "#1e40af",
+                    backgroundColor: !data ? "#83ade8" : "#1e40af",
                     color: "white",
                     borderRadius: "10px",
                     border: "none",
-                    cursor:
-                      !data?.reg_number || data?.reg_number === "Not Found"
-                        ? "not-allowed"
-                        : "pointer",
+                    cursor: !data ? "not-allowed" : "pointer",
                     fontWeight: "bold",
                     transition: "background-color 0.3s ease",
                   }}
@@ -1719,21 +1724,67 @@ function App() {
                 </thead>
                 <tbody>
                   {filteredHistory.map((item) => {
+                    const regNumber =
+                      item.reg_number ||
+                      item.applicant_name ||
+                      `RTI-#${item.id}`;
+                    const ministryName =
+                      item.ministry_name ||
+                      item.department_normalized ||
+                      item.department ||
+                      "N/A";
+                    const deptName = item.dept_name || item.department || "N/A";
+                    const sectionName =
+                      item.section_name || item.subject || "—";
+
+                    // Date Parsing Helper
+                    const parseDateString = (dateStr) => {
+                      if (
+                        !dateStr ||
+                        dateStr === "—" ||
+                        dateStr === "null" ||
+                        dateStr.trim() === ""
+                      )
+                        return null;
+                      if (
+                        typeof dateStr === "string" &&
+                        dateStr.includes("/")
+                      ) {
+                        const parts = dateStr.split("/");
+                        if (parts.length === 3) {
+                          return new Date(
+                            parts[2],
+                            parseInt(parts[1], 10) - 1,
+                            parts[0],
+                          );
+                        }
+                      }
+                      const parsed = new Date(dateStr);
+                      return isNaN(parsed.getTime()) ? null : parsed;
+                    };
+
                     const today = new Date();
-                    const filingDate = new Date(item.filing_date);
-                    const replyDate =
-                      item.reply_date && item.reply_date !== "—"
-                        ? new Date(item.reply_date)
+                    const filingDate = parseDateString(item.filing_date);
+
+                    // Clean up reply_date: Treat missing or null-like values as null
+                    const rawReply =
+                      item.reply_date && item.reply_date !== "null"
+                        ? item.reply_date
                         : null;
+                    const replyDate = parseDateString(rawReply);
 
                     const diffInMs = replyDate
                       ? replyDate - filingDate
-                      : today - filingDate;
+                      : filingDate
+                        ? today - filingDate
+                        : 0;
+
                     const diffDays = Math.max(
                       0,
                       Math.ceil(diffInMs / (1000 * 60 * 60 * 24)),
                     );
 
+                    // Status Logic
                     let status = {
                       text: "",
                       color: "",
@@ -1757,10 +1808,11 @@ function App() {
                           subtitle: `${diffDays} days taken`,
                           color: "#2563eb",
                           bg: "#dbeafe",
-                          needsAppeal: false,
+                          needsAppeal: false, // <-- If reply_date exists, needsAppeal is FALSE
                         };
                       }
                     } else {
+                      // NO REPLY RECEIVED
                       if (diffDays <= 30) {
                         status = {
                           text: "IN PROGRESS",
@@ -1775,7 +1827,7 @@ function App() {
                           subtitle: `${diffDays}d - No Reply`,
                           color: "#dc2626",
                           bg: "#fee2e2",
-                          needsAppeal: true,
+                          needsAppeal: true, // <-- Draft Appeal button ONLY shows here!
                         };
                       }
                     }
@@ -1795,7 +1847,7 @@ function App() {
                             color: "#1e293b",
                           }}
                         >
-                          {item.reg_number}
+                          {regNumber}
                         </td>
                         <td
                           style={{
@@ -1804,13 +1856,13 @@ function App() {
                             fontSize: "0.8rem",
                           }}
                         >
-                          {item.ministry_name}
+                          {ministryName}
                         </td>
                         <td style={{ padding: "16px", fontWeight: "600" }}>
-                          {item.dept_name}
+                          {deptName}
                         </td>
                         <td style={{ padding: "16px", color: "#64748b" }}>
-                          {item.section_name || "—"}
+                          {sectionName}
                         </td>
                         <td style={{ padding: "16px" }}>
                           {filingDate && !isNaN(filingDate.getTime())
