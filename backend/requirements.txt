@@ -7,3 +7,4 @@ gunicorn
 pdfplumber
 pytesseract
 Pillow
+PyJWT
